@@ -11,13 +11,13 @@ Author
 Description
 -----------
 
-This script is used to convert a _VPS_, running another linux distro, to _Arch Linux_.  
+This script is used to convert a _VPS_, running another linux distro, to _Arch Linux_.
 It should be **only** used if your _VPS_ provider doesn't provide you an _Arch Linux_ image.
 
 Disclaimer
 ----------
 
-> I'm not responsible for any damage in your system and/or any violation of the agreement between you and your vps provider.  
+> I'm not responsible for any damage in your system and/or any violation of the agreement between you and your vps provider.
 > **Use at your own risk!**
 
 How To
@@ -27,9 +27,8 @@ Download the script on your _VPS_ and execute it with root privileges
 
 **WARNING** The script will **delete** any data in your _VPS_!
 
-	wget https://felixc.at/vps2arch
-	chmod +x vps2arch
-	./vps2arch
+	wget "https://cdn.jsdelivr.net/gh/kitty-panics/vps2arch/vps2arch"
+	chmod +x vps2arch ; ./vps2arch
 
 Some _Debian_ _VPS_ images don't have the _CA certificates_ installed, so `wget` will give you the following errors:
 
@@ -74,10 +73,10 @@ because you can install it in the canonical way.
 Contributing
 ------------
 
-If you have any useful modification, please use **Pull requests**.  
+If you have any useful modification, please use **Pull requests**.
 If you have successfully used this script on a different _distro_ - _VPS_ combination, please contact me so that I can update the above list.
 
-If you are not a developer, but you still want to contribute, you can donate me an account on your _VPS_ provider and I'll do my best to support it.  
+If you are not a developer, but you still want to contribute, you can donate me an account on your _VPS_ provider and I'll do my best to support it.
 Or you can just donate me some bucks I'll spend to buy a _VPS_ on your provider in order to support it.
 
 Caveats
