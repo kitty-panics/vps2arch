@@ -33,7 +33,7 @@ get_mirrors() {
 	country=$1
 	
 	[ -z $country ] && country=$(get_country || echo -n "all")
-	_download "https://www.archlinux.org/mirrorlist/?country=$country&protocol=http&protocol=https&ip_version=4&use_mirror_status=on" | grep -oP '(?<=#Server = ).*(?=\$repo/)' || get_mirrors all
+	_download "https://archlinux.org/mirrorlist/?country=$country&protocol=http&protocol=https&ip_version=4&use_mirror_status=on" | grep -oP '(?<=#Server = ).*(?=\$repo/)' || get_mirrors all
 }
 
 cpu_type=$(uname -m)
@@ -51,11 +51,11 @@ download() {
 }
 
 download_and_extract_bootstrap() {
-	local sha1 filename
-	download iso/latest/sha1sums.txt | egrep "[[:digit:]]-$cpu_type.tar.gz" > "sha1sums.txt"
-	read -r sha1 filename < "sha1sums.txt"
+	local sha256 filename
+	download iso/latest/sha256sums.txt | egrep "[[:digit:]]-$cpu_type.tar.gz" > "sha256sums.txt"
+	read -r sha256 filename < "sha256sums.txt"
 	download "iso/latest/$filename" > "$filename"
-	sha1sum -c sha1sums.txt || exit 1
+	sha256sum -c sha256sums.txt || exit 1
 	tar -xpzf "$filename"
 	rm -f "$filename"
 
@@ -102,6 +102,7 @@ configure_chroot() {
 		mv "/root.$cpu_type/etc/pacman.conf.bak" "/root.$cpu_type/etc/pacman.conf"
 	fi
 	chroot_exec 'pacman-key --init && pacman-key --populate archlinux'
+	chroot_exec 'pacman --needed --noconfirm -Sy archlinux-keyring'
 	# Generate fstab
 	chroot_exec 'genfstab /mnt >> /etc/fstab'
 
@@ -224,14 +225,14 @@ configure_bootloader() {
 configure_network() {
 	local gateway dev ip
 
-	read -r dev gateway <<-EOF
-		$(awk '$2 == "00000000" { ip = strtonum(sprintf("0x%s", $3));
-			printf ("%s\t%d.%d.%d.%d", $1,
-			rshift(and(ip,0x000000ff),00), rshift(and(ip,0x0000ff00),08),
-			rshift(and(ip,0x00ff0000),16), rshift(and(ip,0xff000000),24)) ; exit }' < /proc/net/route)
-	EOF
-
-	set -- $(ip addr show dev "$dev" | awk '($1 == "inet") { print $2 }')
+	dev=$(ls /sys/class/net | grep -v lo)
+	if [ -n "$(ip -4 route show default | awk '{ print $3 }')" ]; then
+		gateway=$(ip -4 route show default | awk '{ print $3 }')
+		set -- $(ip addr show dev "$dev" | awk '($1 == "inet") { print $2 }')
+	else
+		gateway=$(ip -6 route show default | awk '{ print $3 }')
+		set -- $(ip addr show dev "$dev" | awk '($1 == "inet6" && $2 !~ /^fe80/) { print $2 }')
+	fi
 	ip=$@
 
 	# FIXME Not supported for "P2P" interfaces, such as venet, yet
